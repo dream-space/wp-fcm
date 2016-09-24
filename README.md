@@ -23,6 +23,38 @@ WordPress Plugin FCM(Firebase Cloud Messaging) for Android
 }
 ```
 
+
+## implement fcm
+this article may help you :
+* http://blog.dream-space.web.id/?p=116
+* https://firebase.google.com/docs/cloud-messaging/android/client
+
+
+## notification body
+* JSON
+```
+{
+  "title": "Title Text",
+  "content": "Content Text",
+  "post_id": post_id in number (optional)
+}
+```
+
+* Android
+```Java
+@Override
+public void onMessageReceived(RemoteMessage remoteMessage) {
+    if (remoteMessage.getData().size() > 0) { // validate nullable
+        Map<String, String> data = remoteMessage.getData();
+        String title    = data.get("title");
+        String content  = data.get("content");
+        Integer post_id = Integer.parseInt(data.get("post_id")); // can be null
+        
+        // Your action display notification here
+    }
+}
+```
+
 ### purchase project implementation 
 https://codecanyon.net/item/koran-wordpress-app-with-push-notification-20/17470988
 
