@@ -1,12 +1,31 @@
 <?php
+
 /*
-  Plugin Name: WP FCM
-  Plugin URI: https://codecanyon.net/item/koran-wordpress-android-app-11/17470988
-  Description: Wordpress Plugin to manage and send Firebase Cloud Messaging for Koran App at Codecanyon
-  Version: 1.0
-  Author: Dream Space
-  Author URI: https://codecanyon.net/user/dream_space/portfolio
-  Text Domain: wp-fcm
+	Plugin Name: WP FCM
+	Plugin URI: https://github.com/dream-space/wp-fcm/
+	Description: Wordpress Plugin to manage and send Firebase Cloud Messaging for Android App. This plugin could send push notification to android user when add new post or udate post.
+	Version: 1.0
+	Author: Dream Space
+	Author URI: https://codecanyon.net/user/dream_space/portfolio
+	License: GPLv3
+	License URI: https://www.gnu.org/licenses/gpl-3.0.html
+*/
+
+/*	
+	Copyright (C) 2016  Dream Space (email : dev.dream.space@gmail.com)
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 define( 'ROOT_PATH', dirname(__FILE__) );
@@ -89,7 +108,7 @@ function fcm_main_parse_requests(){
 				// insert POST request into database
 				$res = fcm_data_insert_user($regid, $device_name, $serial, $os_version);
 				if($res == 1){
-					$data = json_encode(array('status'=> 'success', 'message'=>'Infoooooos'));
+					$data = json_encode(array('status'=> 'success', 'message'=>'successfully registered device'));
 					$fcm_rest->response($data, 200);
 				}else{
 					$data = json_encode(array('status'=> 'failed', 'message'=>'failed when insert to database'));
