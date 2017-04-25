@@ -81,7 +81,6 @@ function fcm_notif_post($new_status, $old_status, $post) {
             'title'     => $title,
             'content'   => $content,
             'post_id'   => $post_id,
-            'type'      => 'POST',
             'image'     => get_post_image_thumb($post)[0]
         );
 
