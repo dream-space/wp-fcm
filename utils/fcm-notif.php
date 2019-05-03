@@ -6,49 +6,48 @@
 
 /* Handle submit notif from dashboard page */
 function fcm_notif_submit($title, $content, $target, $single_regid){
-	$valid_title 	= true;
-	$valid_conten 	= true;
-	$valid_target 	= true;
-	$all_regid 		= array();
+    $valid_title 	= true;
+    $valid_conten 	= true;
+    $valid_target 	= true;
+    $total 	        = 1;
 
-	if(fcm_tools_is_empty($title)){
-		fcm_tools_error_msg("Message Title Cannot empty.");
-		$valid_title = false;
-	}
+    if(fcm_tools_is_empty($title)){
+        fcm_tools_error_msg("Message Title Cannot empty.");
+        $valid_title = false;
+    }
 
-	if(fcm_tools_is_empty($content)){
-		fcm_tools_error_msg("Message Content Cannot empty.");
-		$valid_conten = false;
-	}
+    if(fcm_tools_is_empty($content)){
+        fcm_tools_error_msg("Message Content Cannot empty.");
+        $valid_conten = false;
+    }
 
-	if($target === "SINGLE"){
-		if(fcm_tools_is_empty($single_regid)){
-			fcm_tools_error_msg("Device RegId Cannot Empty for Single Device.");
-			$valid_conten = false;
-		}else{
-			array_push($all_regid, $single_regid);
-		}
-	} elseif($target === "ALL"){
-		$all_regid = fcm_data_get_all_regid();
-		if(count($all_regid) <= 0){
-			fcm_tools_error_msg("You have no fcm user.");
-			return;
-		}
-	}
+    if($target === "SINGLE"){
+        if(fcm_tools_is_empty($single_regid)){
+            fcm_tools_error_msg("Device RegId Cannot Empty for Single Device.");
+            $valid_conten = false;
+        }
+    } elseif($target === "ALL"){
+        $total = fcm_data_get_all_count();
+        if($total <= 0){
+            fcm_tools_error_msg("You have no fcm user.");
+            return;
+        }
+        $single_regid = "";
+    }
 
-	if($valid_title && $valid_conten && $valid_target){
-		$message = array( 'title' => $title, 'content' => $content , 'post_id' => -1 );
-		$respon  = fcm_notif_divide_send($all_regid, $message);
+    if($valid_title && $valid_conten && $valid_target){
+        $message = array( 'title' => $title, 'content' => $content , 'post_id' => -1 );
+        $respon  = fcm_notif_divide_send($single_regid, $total, $message);
 
-		if($respon['success'] === NULL || $respon['failure'] === NULL){
-			fcm_tools_error_msg("Make sure your FCM API KEY is correct.");
-			return;
-		}
+        if($respon['success'] === NULL || $respon['failure'] === NULL){
+            fcm_tools_error_msg("Make sure your FCM API KEY is correct.");
+            return;
+        }
 
-		$res_msg = '<p>Success : '.$respon['success']. '<br>Failure : '.$respon['failure'].'</p>';
-		fcm_tools_success_msg($res_msg);
-		fcm_data_insert_log($title, $content, $target, "CUSTOM_DASHBOARD", $respon['success'], $respon['failure']);
-	}
+        $res_msg = '<p>Success : '.$respon['success']. '<br>Failure : '.$respon['failure'].'</p>';
+        fcm_tools_success_msg($res_msg);
+        fcm_data_insert_log($title, $content, $target, "CUSTOM_DASHBOARD", $respon['success'], $respon['failure']);
+    }
 }
 
 /*
@@ -84,10 +83,10 @@ function fcm_notif_post($new_status, $old_status, $post) {
             'image'     => get_post_image_thumb($post)[0]
         );
 
-        $all_regid = fcm_data_get_all_regid();
-        if(count($all_regid) <= 0) return;
+        $total = fcm_data_get_all_count();
+        if($total <= 0) return;
 
-        $respon  = fcm_notif_divide_send($all_regid, $message);
+        $respon  = fcm_notif_divide_send("", $total, $message);
         if($respon['success'] === NULL || $respon['failure'] === NULL) return;
 
         fcm_data_insert_log($title, $content, "ALL", $event, $respon['success'], $respon['failure']);
@@ -106,79 +105,79 @@ function get_post_image_thumb($post){
 }
 
 
-/* 
+/*
  * Handle notification more than 1000 users
  */
-function fcm_notif_divide_send($all_reg_id, $message) {
+function fcm_notif_divide_send($reg_id, $total, $message) {
+    $reg_ids = array();
+    $push_status = array();
+    if ($reg_id != "") {
+        array_push($reg_ids, $reg_id);
+        $push_status[] = fcm_notif_send($reg_ids, $message);
+    } else {
+        $page = floor($total / 1000);
+        for ($i = 0; $i <= $page; $i++){
+            $regid_arr = fcm_data_get_regid_by_page(1000, ($i * 1000));
+            // send notification per 1000 items
+            $push_status[] = fcm_notif_send($regid_arr, $message);
+        }
+    }
 
-	$gcm_reg_ids = array();
-	$i = 0;
-	// split gcm reg id per 1000 item
-	foreach($all_reg_id as $reg_id){
-		$i++;
-		$gcm_reg_ids[floor($i/1000)][] = $reg_id;
-	}
-	// send notif per 1000 items
-	$pushStatus = array();
-	foreach($gcm_reg_ids as $divided_reg_id){
-		$push_status[] = fcm_notif_send($divided_reg_id, $message);
-	}
+    $success_count = 0;
+    $failure_count = 0;
+    foreach($push_status as $s){
+        if(!empty($s['success'])) $success_count = $success_count + $s['success'];
+        if(!empty($s['failure'])) $failure_count = $failure_count + ($s['failure']);
+    }
 
-	$success_count = 0;
-	$failure_count = 0;
-	foreach($push_status as $s){
-		if(!empty($s['success'])) $success_count = $success_count + $s['success'];
-		if(!empty($s['failure'])) $failure_count = $failure_count + ($s['failure']);
-	}
-
-	$obj_data = array();
-	$obj_data['success'] = $success_count;
-	$obj_data['failure'] = $failure_count;
-	return $obj_data;
+    $obj_data = array();
+    $obj_data['success'] = $success_count;
+    $obj_data['failure'] = $failure_count;
+    return $obj_data;
 }
 
 
 function fcm_notif_send($registatoin_ids, $message) {
-	$error = false;
+    $error = false;
 
-	//echo '<pre>'; print_r($result); echo '</pre>';
+    //echo '<pre>'; print_r($result); echo '</pre>';
 
-	//Get Option
-	$fcm_api_key=get_option('fcm_setting')['fcm-api-key'];
-	if(empty($fcm_api_key) || strlen($fcm_api_key) <= 0) {
-		$error = true;
-		return $error;
-	}
+    //Get Option
+    $fcm_api_key=get_option('fcm_setting')['fcm-api-key'];
+    if(empty($fcm_api_key) || strlen($fcm_api_key) <= 0) {
+        $error = true;
+        return $error;
+    }
 
-	$url = 'https://fcm.googleapis.com/fcm/send';
-	//$url = 'https://android.googleapis.com/gcm/send';
+    $url = 'https://fcm.googleapis.com/fcm/send';
+    //$url = 'https://android.googleapis.com/gcm/send';
 
-	$fields = array(
-		'registration_ids' => $registatoin_ids,
-		'data' => $message
-	);
+    $fields = array(
+        'registration_ids' => $registatoin_ids,
+        'data' => $message
+    );
 
-	$headers = array( 'Authorization: key=' . $fcm_api_key, 'Content-Type: application/json' );
-	// Open connection
-	$ch = curl_init();
+    $headers = array( 'Authorization: key=' . $fcm_api_key, 'Content-Type: application/json' );
+    // Open connection
+    $ch = curl_init();
 
-	// Set the url, number of POST vars, POST data
-	curl_setopt($ch, CURLOPT_URL, $url);
-	curl_setopt($ch, CURLOPT_POST, true);
-	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    // Set the url, number of POST vars, POST data
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-	// Disabling SSL Certificate support temporarly
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+    // Disabling SSL Certificate support temporarly
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
 
-	// Execute post
-	$result = curl_exec($ch);
-	if ($result === FALSE) { die('Curl failed: ' . curl_error($ch)); }
-	// Close connection
-	curl_close($ch);
-	$result_data = json_decode($result, true);
-	return $result_data;
+    // Execute post
+    $result = curl_exec($ch);
+    if ($result === FALSE) { die('Curl failed: ' . curl_error($ch)); }
+    // Close connection
+    curl_close($ch);
+    $result_data = json_decode($result, true);
+    return $result_data;
 
 }
 

@@ -1,5 +1,8 @@
 <?php
-	$target = 'SINGLE';
+	$target     = 'SINGLE';
+    $title 		= "";
+    $content 	= "";
+    $s_regid 	= "";
 ?>
 <div class="wrap">
 	
