@@ -12,6 +12,8 @@ function fcm_setting_init() {
     add_settings_field('post-new-title', __('New Post Title','wp_fcm'), 'fcm_setting_post_new_title_callback', 'wp-fcm', 'fcm_setting-section');
     add_settings_field('post-update-title', __('Update Post Title','wp_fcm'), 'fcm_setting_post_update_title_callback', 'wp-fcm', 'fcm_setting-section');
 
+    add_settings_field('notif-topic', __('Send Notif by Topic','wp_fcm'), 'fcm_setting_topic_callback', 'wp-fcm', 'fcm_setting-section');
+
 	register_setting('wp-fcm-settings-group', 'fcm_setting', 'fcm_setting_validate' );
 }
 
@@ -49,6 +51,12 @@ function fcm_setting_post_update_title_callback() {
     echo $html;
 }
 
+function fcm_setting_topic_callback(){
+    $options = get_option('fcm_setting');
+    $html = '<input type="checkbox" id="notif-topic" name="fcm_setting[notif-topic]" value="1"' . checked( 1, $options['notif-topic'], true ) . '/>';
+    echo $html;
+}
+
 function fcm_setting_validate($arr_input) {
 	$options = get_option('fcm_setting');
 	$options['fcm-api-key'] = trim( $arr_input['fcm-api-key'] );
@@ -57,6 +65,8 @@ function fcm_setting_validate($arr_input) {
 	$options['post-update'] = trim( $arr_input['post-update'] );
     $options['post-new-title'] 	= trim( $arr_input['post-new-title'] );
     $options['post-update-title'] = trim( $arr_input['post-update-title'] );
+
+    $options['notif-topic'] = trim( $arr_input['notif-topic'] );
 
 	$options['post-scheduled'] = trim( $arr_input['post-scheduled'] );
 	$options['dialog-confirm-notif'] = trim( $arr_input['dialog-confirm-notif'] );

@@ -148,8 +148,7 @@ class Fcm_Table_Logs_List extends WP_List_Table {
 		echo '.wp-list-table .column-content { width: 40%; }';
 		echo '.wp-list-table .column-target { width: 10%; }';
 		echo '.wp-list-table .column-event { width: 15%; }';
-		echo '.wp-list-table .column-success { width: 10%; }';
-		echo '.wp-list-table .column-failure { width: 10%; }';
+		echo '.wp-list-table .column-status { width: 10%; }';
 		echo '.wp-list-table .column-created_at { width: 20%; }';
 		echo '</style>';
 	}
@@ -165,9 +164,7 @@ class Fcm_Table_Logs_List extends WP_List_Table {
 			return $item[$column_name];
 		case 'event':
 			return $item[$column_name];		
-		case 'success':
-			return $item[$column_name];						
-		case 'failure':
+		case 'status':
 			return $item[$column_name];
 		case 'created_at':
 			return date("Y-m-d H:m:s", $item[$column_name]);	
@@ -190,8 +187,7 @@ class Fcm_Table_Logs_List extends WP_List_Table {
 			$item['content'],
 			$item['target'],
 			$item['event'],
-			$item['success'],
-			$item['failure'],
+			$item['status'],
 			$item['created_at'],
 		$this->row_actions($actions)
 		);
@@ -212,8 +208,7 @@ class Fcm_Table_Logs_List extends WP_List_Table {
 			'content'  		=> 'Content',
 			'target' 		=> 'Target',
 			'event' 		=> 'Event',
-			'success' 		=> 'Success',
-			'failure' 		=> 'Failure',
+			'status' 		=> 'Status',
 			'created_at' 	=> 'Created at'
 		);
 		return $columns;

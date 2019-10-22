@@ -44,15 +44,30 @@ this article may help you :
 ```Java
 @Override
 public void onMessageReceived(RemoteMessage remoteMessage) {
-    if (remoteMessage.getData().size() > 0) { // validate nullable
+    FcmNotif fcmNotif = new FcmNotif();
+    if (remoteMessage.getData().size() > 0) {
         Map<String, String> data = remoteMessage.getData();
-        String title    = data.get("title");
-        String content  = data.get("content");
-        Integer post_id = Integer.parseInt(data.get("post_id")); // can be null
-        
-        // Your action display notification here
+        fcmNotif.post_id = data.get("post_id") == null ? -1 : Integer.parseInt(data.get("post_id"));
+        fcmNotif.title = data.get("title");
+        fcmNotif.content = data.get("content");
+        fcmNotif.image = data.get("image");
+    } else if (remoteMessage.getNotification() != null) {
+        RemoteMessage.Notification rn = remoteMessage.getNotification();
+        fcmNotif.title = rn.getTitle();
+        fcmNotif.content = rn.getBody();
     }
+    // Your action display notification here
 }
+```
+
+* Subscribe topic
+```Java
+FirebaseMessaging.getInstance().subscribeToTopic("ALL-DEVICE").addOnCompleteListener(new OnCompleteListener<Void>() {
+    @Override
+    public void onComplete(@NonNull Task<Void> task) {
+        sharedPref.setSubscibeNotif(task.isSuccessful());
+    }
+});
 ```
 
 ### purchase project implementation 

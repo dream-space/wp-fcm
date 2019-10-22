@@ -4,7 +4,7 @@
 	Plugin Name: WP FCM
 	Plugin URI: https://github.com/dream-space/wp-fcm/
 	Description: Wordpress Plugin to manage and send Firebase Cloud Messaging for Android App. This plugin could send push notification to android user when add new post or update post.
-	Version: 2.1
+	Version: 3.0
 	Author: Dream Space
 	Author URI: https://codecanyon.net/user/dream_space/portfolio
 	License: GPLv3
@@ -48,7 +48,7 @@ add_filter('query_vars', 'fcm_main_query_vars', 0);
 add_action('parse_request', 'fcm_main_parse_requests', 0);
 
 add_action('transition_post_status', 'fcm_main_transition_post', 10, 3);
-//add_action('future_to_publish', 'fcm_main_future_post_scheduled', 10, 1);
+add_action('publish_future_post', 'fcm_main_future_post', 10, 1);
 
 /** ------------------------ End of : Registering All required action ------------------- */
 
@@ -134,5 +134,9 @@ function fcm_main_transition_post($new_status, $old_status, $post){
 	fcm_notif_post($new_status, $old_status, $post);
 }
 
+function fcm_main_future_post($post_id) {
+    update_post_meta($post_id, 'hook_fired', 'true');
+    fcm_notif_post('publish', 'future', get_post( $post_id ));
+}
 
 ?>

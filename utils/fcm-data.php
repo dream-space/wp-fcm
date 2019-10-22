@@ -129,6 +129,7 @@ function fcm_data_init_table_logs(){
 		`event` text,
 		`success` int(11),
 		`failure` int(11),
+		`status` text,
 		`created_at` bigint(30),
 		PRIMARY KEY (`id`)
 		) $charset_collate;";
@@ -137,7 +138,7 @@ function fcm_data_init_table_logs(){
     dbDelta($sql);
 }
 
-function fcm_data_insert_log($title, $content, $target, $event, $success, $failure){
+function fcm_data_insert_log($title, $content, $target, $event, $status){
     global $wpdb;
     $logs_table = $wpdb->prefix.'fcm_logs';
     $cur_time = time();
@@ -146,8 +147,9 @@ function fcm_data_insert_log($title, $content, $target, $event, $success, $failu
         'content' 	=> $content,
         'target' 	=> $target,
         'event' 	=> $event,
-        'success' 	=> $success,
-        'failure' 	=> $failure,
+        'success' 	=> 0,
+        'failure' 	=> 0,
+        'status' 	=> $status,
         'created_at'=> $cur_time,
     ));
 }
@@ -157,7 +159,7 @@ function fcm_data_count_logs($search){
     $logs_table = $wpdb->prefix.'fcm_logs';
     $where 	= " ";
     if(!fcm_tools_is_empty($search)){
-        $where 	= " WHERE CONCAT(title, content, target, event, success, failure) REGEXP '".$search."' ";
+        $where 	= " WHERE CONCAT(title, content, target, event, status) REGEXP '".$search."' ";
     }
     $sql = "SELECT COUNT(id) FROM ".$logs_table." ".$where.";";
     return $wpdb->get_var($sql);
@@ -168,7 +170,7 @@ function fcm_data_get_logs($orderby, $order, $per_page, $paged, $search){
     $logs_table = $wpdb->prefix.'fcm_logs';
     $where 	= " ";
     if(!fcm_tools_is_empty($search)){
-        $where 	= " WHERE CONCAT(title, content, target, event, success, failure) REGEXP '".$search."' ";
+        $where 	= " WHERE CONCAT(title, content, target, event, status) REGEXP '".$search."' ";
     }
     $sql = "SELECT * FROM ".$logs_table." ".$where." ORDER BY ".$orderby." ".$order." LIMIT ".$per_page." OFFSET ".$paged;
     return $wpdb->get_results($sql, ARRAY_A);
