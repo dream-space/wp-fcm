@@ -5,7 +5,7 @@ WordPress Plugin FCM(Firebase Cloud Messaging) for Android
 * URL    : www.sample-domain.com/?api-fcm=register
 * TYPE   : POST
 * HEADER : Content-Type : application/json
-           Security : YOUR_SECURITY_CODE
+*          Security : YOUR_SECURITY_CODE
 * BODY   : 
 ```
 {
