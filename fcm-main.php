@@ -4,7 +4,7 @@
 	Plugin Name: WP FCM
 	Plugin URI: https://github.com/dream-space/wp-fcm/
 	Description: Wordpress Plugin to manage and send Firebase Cloud Messaging for Android App. This plugin could send push notification to android user when add new post or update post.
-	Version: 3.0
+	Version: 3.1
 	Author: Dream Space
 	Author URI: https://codecanyon.net/user/dream_space/portfolio
 	License: GPLv3
@@ -98,6 +98,13 @@ function fcm_main_parse_requests(){
 
 			$fcm_rest = new Fcm_Rest();
 			if($fcm_rest->get_request_method() != "POST") $fcm_rest->response('',406);
+
+            $security = $fcm_rest->get_header('Security');
+            $options = fcm_main_get_option();
+            if($options['use-security'] == 1 && ( !isset($security) || $options['security-code'] != $security )){
+                $data = json_encode(array('status'=> 'failed', 'message'=>'invalid_security'));
+                $fcm_rest->response($data, 200);
+            }
 			$api_data 	 = json_decode(file_get_contents("php://input"), true);
 			$regid 		 = $api_data['regid'];
 			$serial 	 = $api_data['serial'];
@@ -137,6 +144,22 @@ function fcm_main_transition_post($new_status, $old_status, $post){
 function fcm_main_future_post($post_id) {
     update_post_meta($post_id, 'hook_fired', 'true');
     fcm_notif_post('publish', 'future', get_post( $post_id ));
+}
+
+function fcm_main_get_option(){
+    $options = get_option('fcm_setting');
+	if(!is_array($options)){
+        $options = array(
+            'fcm-api-key' => 'Your FCM Key',
+			'post-new' => 0, 'post-update' => 0,
+            'post-new-title' => 'New Post', 'post-update-title' => 'Update Post',
+            'notif-topic' => 1,
+            'security-code' => "Your Security Code",
+			'use-security' => 0,
+		);
+	}
+
+	return $options;
 }
 
 ?>

@@ -61,18 +61,18 @@ function fcm_notif_post($new_status, $old_status, $post) {
     $content    = $post_title;
     $title      = "";
 
-    $options = get_option('fcm_setting');
+    $options = fcm_main_get_option();
     $is_send_notif = false;
 
     // on add post
-    if ($old_status != 'publish' && $new_status == 'publish' && $post->post_type == 'post' && $options['post-new'] != false) {
+    if ($old_status != 'publish' && $new_status == 'publish' && $post->post_type == 'post' && $options['post-new'] == 1) {
         $is_send_notif = true;
-        $title = !fcm_tools_is_empty($options['post-new-title']) ? $options['post-new-title'] : 'New Post';
+        $title = $options['post-new-title'];
         $event = "NEW_POST";
 
-    } else if ($old_status == 'publish' && $new_status == 'publish' && $post->post_type == 'post' && $options['post-update'] != false) { // on update post
+    } else if ($old_status == 'publish' && $new_status == 'publish' && $post->post_type == 'post' && $options['post-update'] == 1) { // on update post
         $is_send_notif = true;
-        $title 	 = !fcm_tools_is_empty($options['post-update-title']) ? $options['post-update-title'] : 'Update Post';
+        $title = $options['post-update-title'];
         $event = "UPDATE_POST";
     }
 
@@ -109,14 +109,14 @@ function get_post_image_thumb($post){
  * Handle notification more than 1000 users
  */
 function fcm_notif_divide_send($reg_id, $total, $message) {
-    $options = get_option('fcm_setting');
+    $options = fcm_main_get_option();
 
     $data = array( 'registration_ids' => null, 'to' => null, 'data' => $message );
 
     if($reg_id != ""){
         $data['to'] = $reg_id;
         $push_response = fcm_notif_send($data);
-    } else if ($options['notif-topic'] == true) {
+    } else if ($options['notif-topic'] == 1) {
         $data['to'] = "/topics/" . NOTIFICATION_TOPIC;
         $push_response = fcm_notif_send($data);
     } else {
@@ -142,7 +142,7 @@ function fcm_notif_send($data) {
     $error = false;
 
     //Get Option
-    $fcm_api_key=get_option('fcm_setting')['fcm-api-key'];
+    $fcm_api_key = fcm_main_get_option()['fcm-api-key'];
     if(empty($fcm_api_key) || strlen($fcm_api_key) <= 0) {
         $error = true;
         return $error;

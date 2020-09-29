@@ -8,6 +8,7 @@ class Fcm_Rest {
 	public $_allow = array();
 	public $_content_type = "application/json";
 	public $_request = array();
+    public $_header = array();
 	
 	private $_method = "";		
 	private $_code = 200;
@@ -42,6 +43,7 @@ class Fcm_Rest {
 	}
 	
 	private function inputs(){
+        $this->_header = $this->get_request_header();
 		switch($this->get_request_method()){
 			case "POST":
 				$this->_request = $this->cleanInputs($_POST);
@@ -80,5 +82,19 @@ class Fcm_Rest {
 		header("HTTP/1.1 ".$this->_code." ".$this->get_status_message());
 		header("Content-Type:".$this->_content_type);
 	}
+
+    public function get_header($key){
+        return $this->_header[$key];
+    }
+
+    public function get_request_header(){
+        $headers = array();
+        foreach ($_SERVER as $key => $value) {
+            if (strpos($key, 'HTTP_') === 0) {
+                $headers[str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower(substr($key, 5)))))] = $value;
+            }
+        }
+        return $headers;
+    }
 }	
 ?>
