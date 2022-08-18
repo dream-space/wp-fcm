@@ -92,11 +92,15 @@ class Fcm_Table_Users_List extends WP_List_Table {
 		return $sortable_columns;
 	}
 
-	function prepare_items($search) {
+	function prepare_items() {
 		$item_per_page 	= 20;
 		$paged 			= 0;
 		$orderby 		= 'created_at';
 		$order 			= 'desc';
+
+		
+		global $search;
+		$search = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
 		
 		if(isset($_REQUEST['paged'])){
 			$paged = max(0, intval($_REQUEST['paged']) - 1) * $item_per_page;
@@ -244,12 +248,15 @@ class Fcm_Table_Logs_List extends WP_List_Table {
 		}
 	}
 
-	function prepare_items($search) {
+	function prepare_items() {
 		$item_per_page 	= 20;
 		$paged 			= 0;
 		$orderby 		= 'created_at';
 		$order 			= 'desc';
 		
+		global $search;
+		$search = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
+
 		if(isset($_REQUEST['paged'])){
 			$paged = max(0, intval($_REQUEST['paged']) - 1) * $item_per_page;
 		}
