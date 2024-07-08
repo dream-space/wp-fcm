@@ -77,11 +77,12 @@ function fcm_notif_post($new_status, $old_status, $post) {
     }
 
     if($is_send_notif == true){
+        $image_arr = get_post_image_thumb($post);
         $message = array(
             'title'     => $title,
             'content'   => $content,
             'post_id'   => $post_id,
-            'image'     => get_post_image_thumb($post)[0]
+            'image'     => sizeof($image_arr) > 0 ? $image_arr[0] : ''
         );
 
         $total = fcm_data_get_all_count();
